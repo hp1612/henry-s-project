@@ -1,2 +1,1 @@
-I have a Football Player Value Data Analysis Project saved in a colab file named as Player_Value.ipynb with supplementary R codes in data_analysis_project.R. Welcome everyone to have a look on it:)
-New Update! I have done a Time Series and Regression project called Hong Kong Housing Prices Project saved in a colab file named as Housing_Prices.ipynb with supplementary R codes in data_science_project.R in the data_science branch.
+Main Branch will show my 3 full project in ipynb, while supporting codes in R could be found in data analysis or data science branch.
