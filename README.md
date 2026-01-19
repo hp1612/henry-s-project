@@ -1,4 +1,7 @@
 My 5 projects can be found in each branch.
 1. combining-files-to-csv
    This is a toy example to combine financial data files with delimiter "|" and adding columns to produce a final dataframe. It contains a file "generate_pipe.py" using python code to produce 10 financial data files randomly. Another data file is "data_combination.py", using python to produce the final dataframe.
-
+   
+2. housing-prices-time-series-with-regression
+   This is a project studying the rental and transaction of public housing prices in Hong Kong from 2020 to 2023. The first file, "Housing_Prices.ipynb", shows the result and report of the investigation. I have done data analysis first by ploting visuals with Tableau, to highlight the data characteristics so as to understand the dataset. Then, I have done a time series analysis by fourier series. Unfortunately, the time series model shows a significant error.
+   As a result, I decided simply using the features of the house to regress against the prices by R. After building scatterplots, testing the multicollinearity and doing the box-cox transformation, I have built up a regression model by forward selection with Akaike Information Criterion. The code can be found in "data_science_project.R".
