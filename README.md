@@ -1,1 +1,1 @@
-
+   This is a project studying football palyer value estimated by transfermarkt from 2000 to 2024. I have build up visuals to study the data pattern by Tableau, then use sql to transform the dataset. The visuals have shown the update month by transfermarkt, variation in market value. By doing a p-test on estimated value and transaction price, the performance of estimation is quite poor. Lastly, I have used R to regress average transfer fee in UK against domestic and world GDP. Surprisingly, the relationship of English Premium League and World GDP is stronger.
