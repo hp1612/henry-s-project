@@ -11,3 +11,6 @@ My 5 projects can be found in each branch.
 
 4. player_value-data-analysis-with-regression
    This is a project studying football palyer value estimated by transfermarkt from 2000 to 2024. I have build up visuals to study the data pattern by Tableau, then use sql to transform the dataset. The visuals have shown the update month by transfermarkt, variation in market value. By doing a p-test on estimated value and transaction price, the performance of estimation is quite poor. Lastly, I have used R to regress average transfer fee in UK against domestic and world GDP. Surprisingly, the relationship of English Premium League and World GDP is stronger.
+
+5. vba-toy-competition-example
+   This is a toy example to show my ability in scrapping discord message and handle competition data in excel by vba. As a competition organizer in a discord server, I have recorded the competitors responses from discord to an excel through the code in "discord_scrap_comp_github.ipynb". Then, I rank and build up a nice output worksheet by vba in "vba_toy_competition_analysis.xlsm". Noted that the data and user name has changed to protect privacy.
