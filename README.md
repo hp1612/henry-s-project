@@ -1,1 +1,1 @@
-
+   This is a toy example to show my ability in scrapping discord message and handle competition data in excel by vba. As a competition organizer in a discord server, I have recorded the competitors responses from discord to an excel through the code in "discord_scrap_comp_github.ipynb". Then, I rank and build up a nice output worksheet by vba in "vba_toy_competition_analysis.xlsm". Noted that the data and user name has changed to protect privacy.
