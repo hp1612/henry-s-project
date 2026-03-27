@@ -1,0 +1,159 @@
+---
+title: "Ecommerce Clustering Analysis"
+output: html_document
+date: "2026-03-27"
+---
+```{r} 
+library(NbClust) # load the required library
+library(gmodels)
+library(ggplot2)
+library(mclust)
+library(nnet)
+library(effects)
+```
+We are going to do a product segmentation to identify the attractiveness and profitability of products. The segmentation variables are total revenue and review score, while category, price and review count are descriptor variable.
+
+```{r}
+data <- read.csv("C:\\Users\\85251\\Downloads\\ecommerce_sales_analysis (1).csv", header=T) # load the data
+data <- data[, c(3:6, 19, 20)] # get the required columns
+head(data)
+```
+We will scale the segmentation variables and start our clustering analysis. 3 clustering methods will be used and we will see which one could provide the most insights.
+
+The first clustering method is hierarchical clustering with the Ward's method.
+
+```{r}
+std_seg <- scale(data[,c("review_score", "total.revenue")]) # standarize the data
+dist <- dist(std_seg, method = "euclidean") # calculate the distance matrix
+h_clust <- hclust(dist, method = "ward.D2") # use ward's method to do the hierarchical clustering
+plot(h_clust) # dendrogram plot
+```
+We will use NbClust to determine the number of clusters.
+
+```{r}
+NbClust(data = std_seg, min.nc = 2, max.nc = 10, index = "all", method = "ward.D2") # see the vote of centers from 2 to 10
+```
+k = 4 is the most selected choice.
+
+```{r}
+h_cluster <- cutree(h_clust, 4) # 4 clusters
+table(h_cluster)
+```
+There are differences in the number of data in the clusters.
+
+```{r}
+hclust_summary <- aggregate(data[, c("review_score", "total.revenue")], by = list(h_cluster), FUN  = mean) # profiling of clusters
+hclust_summary
+```
+
+It splits the data into 4 general group, which are the combinations of high or low review score and total revenue.
+
+Combined with the previous table, low score and low revenue group have the most data points, while low score and high revenue group have the least data. This is something logical and sensible.
+
+```{r}
+CrossTable(data$category, h_cluster, prop.chisq = F, prop.r = T, prop.c = T, prop.t = F, chisq = T) # observe the relationship of category and segment
+```
+Since the p-value is large, the relationship between the product category and segment can be seen as independent.
+
+Then, we try to fit the k-means model, and using the elbow method to check which k is most suitable.
+
+```{r}
+wcss = NULL
+for(k in 1:10){
+  kmeans_model <- kmeans(std_seg, centers = k, nstart = 25) # try 25 starting positions
+  wcss[k] <- kmeans_model$tot.withinss # total within-cluster sum of squares
+}
+elbow_data <- data.frame(k = 1:10, WCSS = wcss)
+ggplot(elbow_data, aes(x = k, y = wcss)) + geom_line() + geom_point() # elbow plot
+```
+The k is difficult to determine as the changes at 3 and 4 are similar. Thus, we will use NbClust again.
+
+```{r}
+NbClust(data = std_seg, min.nc = 2, max.nc = 10, index = "all", method = "kmeans") # check the number of votes for 2 to 10 centers
+```
+4 has the most vote.
+```{r}
+k_clust <- kmeans(std_seg, 4, iter.max = 100, nstart = 25) # run for 4 centers
+table(k_clust$cluster)
+```
+The distribution of data in each cluster is more even now.
+
+```{r}
+k_cluster <- factor(k_clust$cluster, levels = c(1, 2, 3, 4))
+kclust_summary <- aggregate(data[, c("review_score", "total.revenue")], by = list(k_cluster), FUN = mean)
+kclust_summary
+```
+
+Similar findings as the hierarchical method.
+
+```{r}
+CrossTable(data$category, k_cluster, prop.chisq = F, prop.r = T, prop.c = T, prop.t = F, chisq = T)
+```
+As the p-value is large, the product category and segment are independent.
+
+Lastly, we will try the Gaussian Mixture Model and use Bayesian Information Criterion to compare the models.
+
+```{r}
+BIC <- mclustBIC(std_seg, verbose = F) # see the BIC of each GMM model
+plot(BIC)
+summary(BIC)
+```
+The EVI model (Equal Volume, Variable shape, diagonal covariance matrix) with 6 clusters give the highest score.
+
+```{r}
+mod <- Mclust(std_seg, x = BIC)
+summary(mod, parameters = TRUE)
+```
+We get 6 clusters with data points ranging from 113 to 205, which gives more insights than the previous 2 models.
+
+```{r}
+cluster_probabilities <- predict(mod, std_seg)$z # probability of a data belongs to which cluster
+clusters_mclust <- mod$classification # final classifications
+head(cluster_probabilities)
+```
+We can also get the probability of a data belong to which segment.
+
+```{r}
+gclust_summary <- aggregate(data[, c("review_score", "total.revenue")], by = list(clusters_mclust), FUN  = mean)
+gclust_summary
+```
+
+```{r}
+CrossTable(data$category, clusters_mclust, prop.chisq = F, prop.r = T, prop.c = T, prop.t = F, chisq = T)
+```
+It has a lower p-value than the previous clustering method, but it is still greater than 0.05. Hence, the relationship between product category and segmentation are independent.
+
+```{r}
+df = as.data.frame(cbind(data$review_score, data$total.revenue, clusters_mclust))
+ggplot(df, aes(x = V1,
+               y = V2,
+               colour = factor(clusters_mclust))) +
+  geom_point(alpha = 0.7) +
+  labs(x = "Review Score",
+       y = "Total Revenue",
+       colour = "Cluster",
+       title = "GMM clusters on review vs revenue")
+```
+Group 1 is mainly low review score.
+Group 2 is medium to high revenue with review score approximately between 3 and 4.
+Group 3 is medium low revenue with review score approximately between 2 and 4.
+Group 4 is mainly high review score.
+Group 5 is mainly low revenue.
+Group 6 is medium to high revenue with review score approximately between 2 and 3.
+We will use this model as it gives the most information.
+
+Then, we will find the relationship between the descriptor variables and segments by building up a stepwise Multinomial Logistic Regression Model.
+
+```{r}
+data.pred <- data.frame(clusters_mclust, as.factor(data$category), data$price, data$review_count)
+full.model <- multinom(clusters_mclust~., data = data.pred, trace = F) # AIC stepwise model
+step.model <- step(full.model, trace = F)
+summary(step.model)
+```
+After selection based on Akaike Information Criterion, the program select the price as the only explanatory variable.
+
+```{r}
+effects <- allEffects(mod = step.model)
+plot(effects[[1]], main = "Price", layout = c(2, 3), rug = F, xlab = "Price", ylab = "Probability", ylim = c(0, 1))
+```
+This plot shows the probability of each cluster in different price.
